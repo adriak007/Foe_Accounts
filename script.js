@@ -57,9 +57,15 @@ const dom = {
   importJson: document.getElementById("importJson"),
   farmSummaryList: document.getElementById("farmSummaryList"),
   farmMore: document.getElementById("farmMore"),
-  farmPopover: document.getElementById("farmPopover"),
-  farmPopoverList: document.getElementById("farmPopoverList"),
   farmClose: document.getElementById("farmClose"),
+  farmExpandedTitle: document.getElementById("farmExpandedTitle"),
+  accountForm: document.getElementById("accountForm"),
+  accountControlName: document.getElementById("accountControlName"),
+  accountControlPassword: document.getElementById("accountControlPassword"),
+  accountControlWorlds: document.getElementById("accountControlWorlds"),
+  accountControlList: document.getElementById("accountControlList"),
+  accountControlEmpty: document.getElementById("accountControlEmpty"),
+  accountControlCount: document.getElementById("accountControlCount"),
   statForm: document.getElementById("statForm"),
   statDate: document.getElementById("statDate"),
   statType: document.getElementById("statType"),
@@ -73,6 +79,7 @@ const dom = {
 };
 
 const state = loadState();
+let farmExpanded = false;
 
 function loadState() {
   const raw = localStorage.getItem(storageKey);
@@ -88,7 +95,8 @@ function loadState() {
     accountName: "",
     worlds: {},
     stats: [],
-    diamondFarm: {}
+    diamondFarm: {},
+    accounts: []
   });
 }
 
@@ -97,7 +105,8 @@ function normalizeState(data) {
     accountName: data.accountName || "",
     worlds: {},
     stats: [],
-    diamondFarm: {}
+    diamondFarm: {},
+    accounts: []
   };
   worlds.forEach((world) => {
     base.worlds[world.id] = base.worlds[world.id] || {};
@@ -109,6 +118,7 @@ function normalizeState(data) {
 
   base.stats = normalizeStats(Array.isArray(data.stats) ? data.stats : []);
   base.diamondFarm = normalizeDiamondFarm(data.diamondFarm || {});
+  base.accounts = normalizeAccounts(Array.isArray(data.accounts) ? data.accounts : []);
   return base;
 }
 
@@ -164,6 +174,32 @@ function normalizeDiamondFarm(data) {
     });
   });
   return base;
+}
+
+function normalizeAccounts(entries) {
+  const knownWorlds = new Set(worlds.map((world) => world.id));
+  return entries
+    .map((entry) => {
+      if (!entry) return null;
+      const name = typeof entry.name === "string" ? entry.name.trim() : "";
+      const password = typeof entry.password === "string" ? entry.password : "";
+      const worldIds = Array.isArray(entry.worldIds) ? entry.worldIds : [];
+      const worldNotes = entry.worldNotes && typeof entry.worldNotes === "object" ? entry.worldNotes : {};
+      const filteredWorlds = worldIds.filter((id) => knownWorlds.has(id));
+      if (!name || !password) return null;
+      return {
+        id: typeof entry.id === "string" ? entry.id : createId(),
+        name,
+        password,
+        worldIds: [...new Set(filteredWorlds)],
+        worldNotes: filteredWorlds.reduce((acc, id) => {
+          const note = typeof worldNotes[id] === "string" ? worldNotes[id] : "";
+          acc[id] = note;
+          return acc;
+        }, {})
+      };
+    })
+    .filter(Boolean);
 }
 
 function saveState() {
@@ -290,6 +326,7 @@ function render() {
   renderGlobalTotals();
   updateWorldTotals();
   renderFarmSummary();
+  renderAccountControl();
 }
 
 function updateWorldTotals() {
@@ -332,16 +369,17 @@ function getGlobalFarmTotals() {
 
 function renderFarmSummary() {
   const all = getGlobalFarmTotals();
-  const latest = all.slice(0, 3);
-  renderFarmRows(dom.farmSummaryList, latest, all.length === 0);
-  renderFarmRows(dom.farmPopoverList, all, all.length === 0);
-
-  if (all.length > 3) {
-    dom.farmMore.hidden = false;
-  } else {
-    dom.farmMore.hidden = true;
-    closeFarmPopover();
+  const hasMoreThanThree = all.length > 3;
+  if (!hasMoreThanThree) {
+    farmExpanded = false;
   }
+  const entries = farmExpanded ? all : all.slice(0, 3);
+  renderFarmRows(dom.farmSummaryList, entries, all.length === 0);
+
+  dom.farmMore.hidden = !hasMoreThanThree || farmExpanded;
+  dom.farmClose.hidden = !farmExpanded;
+  dom.farmExpandedTitle.hidden = !farmExpanded;
+  dom.farmMore.setAttribute("aria-expanded", farmExpanded ? "true" : "false");
 }
 
 function renderFarmRows(container, entries, isEmpty) {
@@ -444,6 +482,7 @@ function initSelectors() {
     option.textContent = world.label;
     dom.statWorld.appendChild(option);
   });
+  renderWorldPicker();
 }
 
 function handleStatTypeChange() {
@@ -571,10 +610,12 @@ function applyState(newState) {
   state.worlds = newState.worlds;
   state.stats = newState.stats;
   state.diamondFarm = newState.diamondFarm || normalizeDiamondFarm({});
+  state.accounts = newState.accounts || [];
   saveState();
   render();
   renderStats();
   renderFarmSummary();
+  renderAccountControl();
 }
 
 function todayISO() {
@@ -648,28 +689,175 @@ function renderFarmList(worldId, listEl) {
   }
 }
 
-function openFarmPopover() {
-  if (dom.farmPopover.hidden) {
-    dom.farmPopover.hidden = false;
-    dom.farmMore.setAttribute("aria-expanded", "true");
-    document.addEventListener("click", handleDocumentClick);
+function renderAccountControl() {
+  dom.accountControlList.innerHTML = "";
+  if (!state.accounts.length) {
+    dom.accountControlEmpty.style.display = "block";
+  } else {
+    dom.accountControlEmpty.style.display = "none";
+  }
+
+  state.accounts.forEach((account) => {
+    const card = document.createElement("div");
+    card.className = "account-control__card";
+
+    const header = document.createElement("div");
+    header.className = "account-control__header";
+
+    const headerInfo = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = account.name;
+    const subtitle = document.createElement("p");
+    subtitle.textContent = formatWorldList(account.worldIds);
+    headerInfo.append(title, subtitle);
+
+    const actions = document.createElement("div");
+    actions.className = "account-control__actions";
+    const toggle = document.createElement("button");
+    toggle.className = "button button--ghost";
+    toggle.type = "button";
+    toggle.dataset.accountToggle = account.id;
+    toggle.textContent = "Mostrar senha";
+    const remove = document.createElement("button");
+    remove.className = "button button--ghost";
+    remove.type = "button";
+    remove.dataset.accountRemove = account.id;
+    remove.textContent = "Remover";
+    actions.append(toggle, remove);
+
+    header.append(headerInfo, actions);
+
+    const password = document.createElement("div");
+    password.className = "account-control__password";
+    password.dataset.accountPassword = account.id;
+    password.hidden = true;
+    const passwordLabel = document.createElement("span");
+    passwordLabel.textContent = "Senha:";
+    const passwordValue = document.createElement("strong");
+    passwordValue.textContent = account.password;
+    password.append(passwordLabel, passwordValue);
+
+    const worldsList = document.createElement("div");
+    worldsList.className = "account-worlds";
+    if (!account.worldIds.length) {
+      const empty = document.createElement("div");
+      empty.className = "account-worlds__empty";
+      empty.textContent = "Nenhum mundo selecionado.";
+      worldsList.appendChild(empty);
+    } else {
+      account.worldIds.forEach((worldId) => {
+        const row = document.createElement("div");
+        row.className = "account-worlds__row";
+        const label = document.createElement("span");
+        label.className = "account-worlds__label";
+        label.textContent = getWorldLabel(worldId);
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "Anotações do mundo";
+        input.value = account.worldNotes?.[worldId] || "";
+        input.dataset.accountNote = account.id;
+        input.dataset.worldId = worldId;
+        row.append(label, input);
+        worldsList.appendChild(row);
+      });
+    }
+
+    card.append(header, password, worldsList);
+    dom.accountControlList.appendChild(card);
+  });
+
+  dom.accountControlCount.textContent = `${state.accounts.length} contas`;
+}
+
+function formatWorldList(worldIds) {
+  if (!worldIds.length) return "Nenhum mundo selecionado.";
+  return worldIds.map((id) => getWorldLabel(id)).join(", ");
+}
+
+function handleAccountSubmit(event) {
+  event.preventDefault();
+  const name = dom.accountControlName.value.trim();
+  const password = dom.accountControlPassword.value;
+  const worldIds = Array.from(dom.accountControlWorlds.querySelectorAll(".world-picker__button.is-selected"))
+    .map((button) => button.dataset.worldId);
+  if (!name || !password) return;
+
+  state.accounts.unshift({
+    id: createId(),
+    name,
+    password,
+    worldIds,
+    worldNotes: worldIds.reduce((acc, id) => {
+      acc[id] = "";
+      return acc;
+    }, {})
+  });
+  saveState();
+  renderAccountControl();
+  dom.accountForm.reset();
+  clearWorldPickerSelection();
+}
+
+function handleAccountListClick(event) {
+  const toggle = event.target.closest("button[data-account-toggle]");
+  if (toggle) {
+    const id = toggle.dataset.accountToggle;
+    const passwordEl = dom.accountControlList.querySelector(`[data-account-password='${id}']`);
+    if (!passwordEl) return;
+    const isHidden = passwordEl.hidden;
+    passwordEl.hidden = !isHidden;
+    toggle.textContent = isHidden ? "Ocultar senha" : "Mostrar senha";
+    return;
+  }
+
+  const remove = event.target.closest("button[data-account-remove]");
+  if (remove) {
+    const id = remove.dataset.accountRemove;
+    state.accounts = state.accounts.filter((account) => account.id !== id);
+    saveState();
+    renderAccountControl();
   }
 }
 
-function closeFarmPopover() {
-  if (!dom.farmPopover.hidden) {
-    dom.farmPopover.hidden = true;
-    dom.farmMore.setAttribute("aria-expanded", "false");
-    document.removeEventListener("click", handleDocumentClick);
+function handleAccountNoteInput(event) {
+  const input = event.target.closest("input[data-account-note]");
+  if (!input) return;
+  const accountId = input.dataset.accountNote;
+  const worldId = input.dataset.worldId;
+  const account = state.accounts.find((item) => item.id === accountId);
+  if (!account) return;
+  if (!account.worldNotes) {
+    account.worldNotes = {};
   }
+  account.worldNotes[worldId] = input.value;
+  saveState();
 }
 
-function handleDocumentClick(event) {
-  const target = event.target;
-  if (target.closest("#farmMore")) return;
-  if (target.closest("#farmClose")) return;
-  if (target.closest(".farm-summary__popover-card")) return;
-  closeFarmPopover();
+function renderWorldPicker() {
+  dom.accountControlWorlds.innerHTML = "";
+  worlds.forEach((world) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "world-picker__button";
+    button.textContent = world.label.replace(/\s*\(.*\)\s*$/, "");
+    button.dataset.worldId = world.id;
+    button.setAttribute("aria-pressed", "false");
+    dom.accountControlWorlds.appendChild(button);
+  });
+}
+
+function clearWorldPickerSelection() {
+  dom.accountControlWorlds.querySelectorAll(".world-picker__button").forEach((button) => {
+    button.classList.remove("is-selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+}
+
+function handleWorldPickerClick(event) {
+  const button = event.target.closest(".world-picker__button");
+  if (!button) return;
+  const isSelected = button.classList.toggle("is-selected");
+  button.setAttribute("aria-pressed", isSelected ? "true" : "false");
 }
 
 dom.worlds.addEventListener("click", handleButtonClick);
@@ -680,8 +868,22 @@ dom.statForm.addEventListener("submit", handleStatSubmit);
 dom.statRows.addEventListener("click", handleStatRemove);
 dom.exportJson.addEventListener("click", handleExport);
 dom.importJson.addEventListener("change", handleImport);
-dom.farmMore.addEventListener("click", openFarmPopover);
-dom.farmClose.addEventListener("click", closeFarmPopover);
+dom.farmMore.addEventListener("click", () => {
+  if (!farmExpanded) {
+    farmExpanded = true;
+    renderFarmSummary();
+  }
+});
+dom.farmClose.addEventListener("click", () => {
+  if (farmExpanded) {
+    farmExpanded = false;
+    renderFarmSummary();
+  }
+});
+dom.accountForm.addEventListener("submit", handleAccountSubmit);
+dom.accountControlList.addEventListener("click", handleAccountListClick);
+dom.accountControlList.addEventListener("input", handleAccountNoteInput);
+dom.accountControlWorlds.addEventListener("click", handleWorldPickerClick);
 
 initTabs();
 initSelectors();

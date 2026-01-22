@@ -30,18 +30,13 @@
         <div class="farm-summary" id="farmSummary">
           <div class="farm-summary__header">
             <h2>Farm global de diamantes</h2>
-            <button class="button button--ghost" id="farmMore" type="button" aria-expanded="false">Ver todos</button>
-          </div>
-          <div class="farm-summary__list" id="farmSummaryList"></div>
-          <div class="farm-summary__popover" id="farmPopover" hidden>
-            <div class="farm-summary__popover-card">
-              <div class="farm-summary__popover-header">
-                <h3>Todos os dias</h3>
-                <button class="button button--ghost" id="farmClose" type="button">Fechar</button>
-              </div>
-              <div class="farm-summary__list" id="farmPopoverList"></div>
+            <div class="farm-summary__actions">
+              <button class="button button--ghost" id="farmMore" type="button" aria-expanded="false">Ver todos</button>
+              <button class="button button--ghost" id="farmClose" type="button" hidden>Fechar</button>
             </div>
           </div>
+          <h3 class="farm-summary__expanded-title" id="farmExpandedTitle" hidden>Todos os dias</h3>
+          <div class="farm-summary__list" id="farmSummaryList"></div>
         </div>
         <div class="data-tools">
           <div class="data-tools__header">
@@ -62,11 +57,49 @@
     <main>
       <nav class="tabs" role="tablist">
         <button class="tab-button is-active" type="button" data-tab="accounts" aria-controls="tab-accounts" aria-selected="true">Contas</button>
+        <button class="tab-button" type="button" data-tab="account-control" aria-controls="tab-account-control" aria-selected="false">Controle de contas</button>
         <button class="tab-button" type="button" data-tab="diary" aria-controls="tab-diary" aria-selected="false">Diário</button>
       </nav>
 
       <section class="tab-panel is-active" id="tab-accounts" data-tab-panel="accounts">
         <section class="worlds" id="worlds"></section>
+      </section>
+
+      <section class="tab-panel" id="tab-account-control" data-tab-panel="account-control" hidden>
+        <div class="account-control">
+          <article class="card">
+            <div class="card__header">
+              <h2>Controle de contas</h2>
+              <p>Cadastre contas, senhas e selecione os mundos disponíveis.</p>
+            </div>
+            <form id="accountForm" class="account-form">
+              <div class="form-grid">
+                <label class="field">
+                  <span>Nome da conta</span>
+                  <input id="accountControlName" type="text" placeholder="Ex: Conta principal" required>
+                </label>
+                <label class="field">
+                  <span>Senha</span>
+                  <input id="accountControlPassword" type="password" placeholder="Digite a senha" required>
+                </label>
+                <label class="field">
+                  <span>Mundos</span>
+                  <div class="world-picker" id="accountControlWorlds" role="group" aria-label="Selecione os mundos"></div>
+                </label>
+              </div>
+              <button class="button button--primary" type="submit">Adicionar conta</button>
+            </form>
+          </article>
+
+          <article class="card">
+            <div class="card__header card__header--row">
+              <h2>Contas salvas</h2>
+              <span class="tag" id="accountControlCount">0 contas</span>
+            </div>
+            <div class="empty-state" id="accountControlEmpty">Nenhuma conta cadastrada ainda.</div>
+            <div class="account-control__list" id="accountControlList"></div>
+          </article>
+        </div>
       </section>
 
       <section class="tab-panel" id="tab-diary" data-tab-panel="diary" hidden>

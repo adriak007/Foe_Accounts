@@ -77,7 +77,7 @@ body::before {
 .hero__panel {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 3px;
   padding: 22px;
   box-shadow: 0 12px 28px var(--shadow);
   display: grid;
@@ -95,7 +95,7 @@ body::before {
 .field input,
 .field select {
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 3px;
   padding: 12px 14px;
   font-size: 1rem;
   font-family: var(--font-body);
@@ -105,7 +105,7 @@ body::before {
 
 .totals {
   background: #fffdf8;
-  border-radius: 16px;
+  border-radius: 3px;
   padding: 16px;
   border: 1px solid var(--line);
 }
@@ -136,7 +136,7 @@ body::before {
 
 .farm-summary {
   background: #fffdf8;
-  border-radius: 16px;
+  border-radius: 3px;
   padding: 16px;
   border: 1px solid var(--line);
   display: grid;
@@ -151,6 +151,12 @@ body::before {
   gap: 12px;
 }
 
+.farm-summary__actions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .farm-summary__header h2 {
   margin: 0;
   font-family: var(--font-title);
@@ -162,11 +168,18 @@ body::before {
   gap: 6px;
 }
 
+.farm-summary__expanded-title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
 .farm-summary__row {
   display: flex;
   justify-content: space-between;
   padding: 8px 10px;
-  border-radius: 12px;
+  border-radius: 3px;
   background: #fffdf6;
   border: 1px solid var(--line);
   font-size: 0.92rem;
@@ -175,41 +188,6 @@ body::before {
 .farm-summary__empty {
   color: var(--muted);
   font-size: 0.9rem;
-}
-
-.farm-summary__popover {
-  position: absolute;
-  inset: 0;
-  background: rgba(246, 240, 227, 0.7);
-  backdrop-filter: blur(2px);
-  display: grid;
-  place-items: center;
-  padding: 12px;
-  z-index: 2;
-}
-
-.farm-summary__popover-card {
-  background: #fffdf8;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  padding: 16px;
-  box-shadow: 0 12px 28px var(--shadow);
-  width: min(420px, 100%);
-  display: grid;
-  gap: 10px;
-}
-
-.farm-summary__popover-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.farm-summary__popover-header h3 {
-  margin: 0;
-  font-family: var(--font-title);
-  font-size: 1.1rem;
 }
 
 .total-line {
@@ -221,7 +199,7 @@ body::before {
 
 .data-tools {
   background: #fffdf8;
-  border-radius: 16px;
+  border-radius: 3px;
   padding: 16px;
   border: 1px solid var(--line);
   display: grid;
@@ -246,7 +224,7 @@ body::before {
   background: #fff;
   color: var(--ink);
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: 3px;
   font-family: var(--font-body);
   font-size: 0.95rem;
   cursor: pointer;
@@ -311,7 +289,7 @@ body::before {
   background: #fffaf0;
   color: var(--muted);
   padding: 10px 18px;
-  border-radius: 999px;
+  border-radius: 3px;
   font-family: var(--font-body);
   font-size: 0.95rem;
   cursor: pointer;
@@ -331,7 +309,7 @@ body::before {
 
 .card {
   background: var(--card);
-  border-radius: 20px;
+  border-radius: 3px;
   border: 1px solid var(--line);
   padding: 18px 20px 20px;
   box-shadow: 0 12px 28px var(--shadow);
@@ -358,7 +336,7 @@ body::before {
 
 .tag {
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: 3px;
   background: #fff3df;
   border: 1px solid var(--line);
   color: var(--muted);
@@ -368,6 +346,133 @@ body::before {
 .diary {
   display: grid;
   gap: 20px;
+}
+
+.account-control {
+  display: grid;
+  gap: 20px;
+}
+
+.account-form {
+  display: grid;
+  gap: 14px;
+}
+
+.world-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.world-picker__button {
+  border: 1px solid #7a3b0a;
+  background: linear-gradient(180deg, #c56a1a 0%, #7b2e0b 100%);
+  color: #fff7e6;
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 12px rgba(55, 23, 6, 0.25);
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+.world-picker__button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.world-picker__button.is-selected {
+  border-color: #1b6b2c;
+  background: linear-gradient(180deg, #33b64d 0%, #1f7b34 100%);
+  color: #f3fff6;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 12px rgba(16, 58, 24, 0.28);
+}
+
+.account-control__list {
+  display: grid;
+  gap: 12px;
+}
+
+.account-control__card {
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  padding: 14px 16px;
+  border-radius: 3px;
+  display: grid;
+  gap: 10px;
+}
+
+.account-control__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-control__header h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+}
+
+.account-control__header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.account-control__actions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.account-control__password {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 3px;
+  background: #fff3df;
+  border: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.account-control__password strong {
+  font-weight: 700;
+}
+
+.account-worlds {
+  display: grid;
+  gap: 8px;
+}
+
+.account-worlds__row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 2fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.account-worlds__label {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.account-worlds__row input {
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-family: var(--font-body);
+  background: #fffefb;
+  color: var(--ink);
+}
+
+.account-worlds__empty {
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .form-grid {
@@ -421,7 +526,7 @@ body::before {
 
 .world {
   background: var(--card);
-  border-radius: 20px;
+  border-radius: 3px;
   border: 1px solid var(--line);
   padding: 18px 20px 20px;
   box-shadow: 0 12px 28px var(--shadow);
@@ -481,7 +586,7 @@ body::before {
 
 .farm__today {
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: 3px;
   background: #fff3df;
   border: 1px solid var(--line);
   color: var(--muted);
@@ -508,7 +613,7 @@ body::before {
   display: flex;
   justify-content: space-between;
   padding: 8px 10px;
-  border-radius: 12px;
+  border-radius: 3px;
   background: #fffdf6;
   border: 1px solid var(--line);
   font-size: 0.92rem;
@@ -526,7 +631,7 @@ body::before {
   align-items: center;
   padding: 10px 12px;
   background: #fffdf6;
-  border-radius: 14px;
+  border-radius: 3px;
   border: 1px solid var(--line);
 }
 
@@ -534,7 +639,7 @@ body::before {
   width: 44px;
   height: 44px;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: 3px;
   background: #fff3df;
   padding: 4px;
 }
@@ -555,7 +660,7 @@ body::before {
   color: var(--ink);
   width: 32px;
   height: 32px;
-  border-radius: 10px;
+  border-radius: 3px;
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 700;
@@ -571,7 +676,7 @@ body::before {
   width: 64px;
   text-align: center;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 3px;
   padding: 6px 8px;
   font-family: var(--font-body);
 }
